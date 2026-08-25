@@ -2,7 +2,7 @@
 
 ## Identificación
 
-- **Nombre:** Kimberly
+- **Nombre:** Kimberly Rodriguez Cruz
 - **Sección:** COMPLETAR
 - **Fecha:** 19-08-2026
 - **Compañero(a) de trabajo:** COMPLETAR
@@ -123,15 +123,15 @@ Capturar una criatura salvaje disponible utilizando una cápsula de su inventari
 
 1. ¿Existe una clase que concentre casi todas las acciones? ¿Cuál y qué responsabilidad debería trasladarse?
 
-   **Respuesta:** COMPLETAR
+   **Respuesta:** Sí, la clase Entrenador podría sobrecargarse de responsabilidades. La responsabilidad de validar si una criatura está en rango y disponible debe ser delegada a la propia clase Criatura, mientras que el cálculo de probabilidad o el proceso técnico de resolución de captura puede trasladarse a una clase colaboradora como Captura o mantenerse estrictamente encapsulado según sus datos.
 
 2. ¿Existe un método en una clase que no posee los datos necesarios para realizarlo?
 
-   **Respuesta:** COMPLETAR
+   **Respuesta:** Sí. Verificar la posición o disponibilidad debe ser responsabilidad de Criatura, que posee directamente esos datos.
 
 3. ¿Existe el mismo atributo en varias clases sin una justificación clara?
 
-   **Respuesta:** COMPLETAR
+   **Respuesta:** No por ahora.
 
 ---
 
@@ -139,17 +139,17 @@ Capturar una criatura salvaje disponible utilizando una cápsula de su inventari
 
 Elige una de tus clases y crea dos objetos con estados distintos.
 
-- **Clase seleccionada:** COMPLETAR
+- **Clase seleccionada:** Criatura
 
-| Atributo | Objeto 1: `COMPLETAR` | Objeto 2: `COMPLETAR` |
+| Atributo | Objeto 1: `Pikachu' | Objeto 2: `Charmander` |
 |----------|-----------------------|-----------------------|
-| COMPLETAR | COMPLETAR | COMPLETAR |
-| COMPLETAR | COMPLETAR | COMPLETAR |
-| COMPLETAR | COMPLETAR | COMPLETAR |
+| Nombre | "Pikachu" | "Charmander" |
+| Vida | 100 | 80 |
+| Distancia | 5 | 18 |
 
-- **Método que ambos objetos pueden ejecutar:** COMPLETAR
-- **¿Qué comparten por pertenecer a la misma clase?:** COMPLETAR
-- **¿Qué cambia entre ambos objetos?:** COMPLETAR
+- **Método que ambos objetos pueden ejecutar:** cambiarDistancia()
+- **¿Qué comparten por pertenecer a la misma clase?:** Comparten la misma estructura de atributos
+- **¿Qué cambia entre ambos objetos?:** El estado de sus atributos
 
 ---
 
@@ -159,14 +159,14 @@ Relaciona cada comportamiento esperado con las responsabilidades propuestas.
 
 | Criterio | ¿Qué información se necesita? | ¿Qué clase debería conocerla? | ¿Qué acción debe realizarse? | ¿Qué clase debería realizarla? |
 |----------|-------------------------------|-------------------------------|------------------------------|--------------------------------|
-| Sin cápsulas | COMPLETAR | COMPLETAR | COMPLETAR | COMPLETAR |
-| Intento válido | COMPLETAR | COMPLETAR | COMPLETAR | COMPLETAR |
-| Fuera de rango | COMPLETAR | COMPLETAR | COMPLETAR | COMPLETAR |
-| Captura exitosa | COMPLETAR | COMPLETAR | COMPLETAR | COMPLETAR |
+| Sin cápsulas | Cantidad actual de cápsulas en el inventario. | Entrenador | Verificar stock de cápsulas y rechazar la acción sin descontar recursos. | Entrenador |
+| Intento válido | Disponibilidad, distancia, stock de cápsulas y probabilidad de captura. | Entrenador y criatura | Descontar 1 cápsula, evaluar éxito o fallo e informar el resultado. | Entrenador |
+| Fuera de rango | Distancia de la criatura y distancia máxima permitida. | Criatura | Validar si la distancia supera el límite y rechazar el intento sin consumir cápsulas. | Criatura |
+| Captura exitosa | Confirmación de éxito del intento y datos de la criatura. | Entrenador y criatura | Agregar la criatura capturada a la colección del entrenador y notificar la captura. | Entrenador |
 
 ## Pregunta de análisis
 
 ¿Existe algún criterio de aceptación que no pueda cumplirse con las clases y responsabilidades propuestas?
 
-**Respuesta y ajuste necesario:** COMPLETAR
+**Respuesta y ajuste necesario:** Si, en la plantilla de la clase criatura solo tenia como responsabilidad principal "atacar", lo cual no correspondia a los criterios de aceptacion del caso. Se redefinió la clase Criatura enfocándola en los atributos exigidos por las reglas del caso y se asignaron correctamente las responsabilidades de verificación e inventario a Entrenador, asegurando que todos los criterios de aceptación puedan cumplirse.
 
