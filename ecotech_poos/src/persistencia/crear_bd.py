@@ -1,5 +1,6 @@
 from persistencia.conexion import abrir_conexion, obtener_motor
 
+
 def crear_tablas():
     conexion = abrir_conexion()
     cursor = conexion.cursor()
@@ -39,6 +40,7 @@ def crear_tablas():
     cursor.execute(sql_proyecto)
     conexion.commit()
     conexion.close()
+
 
 if __name__ == "__main__":
     crear_tablas()

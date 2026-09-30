@@ -6,10 +6,10 @@ class RegistroTiempo:
         self._registros: list = []
 
     def mostrardatos(self) -> str:
-        return f"{self.fecha} {self.horas}"
+        return f"{self.fecha} {self.horas} hrs"
 
     def mostrardatos2(self, hola: str) -> str:
-        return f"///////  {self.fecha} {hola}"
+        return f"/////// {self.fecha} {hola}"
 
     def agregar_registrotiempo(self, registrotiempo) -> bool:
         if registrotiempo in self._registros:

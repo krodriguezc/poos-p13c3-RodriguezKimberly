@@ -1,6 +1,8 @@
 from dominio.registroTiempo import RegistroTiempo
 
+
 class Empleado:
+
     def __init__(self, nombre: str, correo: str, id=None):
         self._id = id
         self._nombre = nombre
@@ -23,6 +25,10 @@ class Empleado:
     def correo(self) -> str:
         return self._correo
 
+    @correo.setter
+    def correo(self, nuevo_correo: str):
+        self._correo = nuevo_correo
+
     def agregar_registro_tiempo(self, registro: RegistroTiempo):
         self._registros_tiempo.append(registro)
 
@@ -31,11 +37,13 @@ class Empleado:
 
 
 class EmpleadoRegular(Empleado):
+
     def __init__(self, nombre: str, correo: str, id=None):
         super().__init__(nombre, correo, id)
 
 
-class Administrador(Empleado): 
+class Administrador(Empleado):
+
     def __init__(self, nombre: str, correo: str, id=None):
         super().__init__(nombre, correo, id)
 

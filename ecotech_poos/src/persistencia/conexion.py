@@ -29,3 +29,9 @@ def abrir_conexion():
     raise ValueError(f"Motor no soportado: {motor}")
 
 
+def marcador_sql():
+    """Retorna ? para SQLite o %s para MySQL (Clase 5, pág. 10)"""
+    if obtener_motor() == "sqlite":
+        return "?"
+    return "%s"
+

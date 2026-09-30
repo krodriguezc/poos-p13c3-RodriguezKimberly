@@ -1,6 +1,5 @@
 from dominio.empleado import Empleado
 
-
 class Departamento:
 
     def __init__(self, nombre: str):
