@@ -1,0 +1,16 @@
+# Entorno virtual (se reconstruye con requirements.txt)
+.venv/
+
+# Archivos generados por Python
+__pycache__/
+*.pyc
+
+# Configuración local con credenciales (NO se publica; se documenta en .env.example)
+.env
+
+# Base de datos local SQLite y registro de errores técnicos
+*.db
+*.log
+
+# Editor
+.vscode/
