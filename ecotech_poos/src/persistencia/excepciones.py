@@ -1,5 +1,5 @@
 class ErrorPersistencia(Exception):
-    """Fallo general al leer o escribir en la base de datos."""
+    """Fallo al leer o escribir en la base de datos."""
 
 
 class ErrorConexion(ErrorPersistencia):

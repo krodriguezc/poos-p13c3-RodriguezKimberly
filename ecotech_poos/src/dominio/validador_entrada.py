@@ -2,13 +2,17 @@ import math
 import re
 from datetime import datetime
 
-
+# aqui cada metodo devuelve el valor limpio o valueerror
 class ValidadorEntrada:
     @staticmethod
     def validar_texto_no_vacio(texto, campo: str = "El campo") -> str:
         if texto is None or not str(texto).strip():
             raise ValueError(f"{campo} no puede estar vacío.")
         return str(texto).strip()
+
+    @staticmethod
+    def validar_texto_opcional(texto) -> str:
+        return "" if texto is None else str(texto).strip()
 
     @staticmethod
     def validar_email(correo) -> str:
@@ -24,10 +28,30 @@ class ValidadorEntrada:
         return ValidadorEntrada.validar_email(correo) if correo else ""
 
     @staticmethod
+    def validar_telefono(telefono) -> str:
+        telefono = (telefono or "").strip()
+        if not re.fullmatch(r"\+?\d[\d ]{6,13}\d", telefono):
+            raise ValueError("El teléfono debe tener entre 8 y 15 dígitos (ej. +56912345678).")
+        return telefono
+
+#modulo 11 para el rut
+    @staticmethod
+    def _digito_verificador(cuerpo: str) -> str:
+        suma, factor = 0, 2
+        for digito in reversed(cuerpo):
+            suma += int(digito) * factor
+            factor = 2 if factor == 7 else factor + 1
+        resto = 11 - (suma % 11)
+        return "0" if resto == 11 else "K" if resto == 10 else str(resto)
+
+    @staticmethod
     def validar_rut(rut) -> str:
         rut = ValidadorEntrada.validar_texto_no_vacio(rut, "El RUT").upper()
         if not re.fullmatch(r"\d{7,8}-[\dK]", rut):
             raise ValueError("El RUT debe tener el formato 12345678-5 (sin puntos y con guion).")
+        cuerpo, digito = rut.split("-")
+        if digito != ValidadorEntrada._digito_verificador(cuerpo):
+            raise ValueError("El dígito verificador del RUT no es válido.")
         return rut
 
     @staticmethod
