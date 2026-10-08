@@ -1,4 +1,5 @@
 # aquí se validan las reglas de negocio de las clases del dominio, sin usar la base de datos ni la interfaz de usuario
+import os
 import sys
 import unittest
 
