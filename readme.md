@@ -43,6 +43,7 @@ Herramienta: Mejor amigo Claude
 
 | Pruebas manuales (`docs/pruebas_manuales.md`) | Propuso 15 casos límite | pide probar casos límite | Adopté, ejecuté las pruebas y anoté los resultados |
 
+le pedi a la IA que me adapte el json , aprove 
 1. git clone 
 2. cd ecotech_poos
 3. py -m venv .venv
@@ -53,6 +54,7 @@ Herramienta: Mejor amigo Claude
 #bd  
 8. python src/persistencia/crearbd.py
 9. python -m unittest discover -s tests -v
+
 
 
 
