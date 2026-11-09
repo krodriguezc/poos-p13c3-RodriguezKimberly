@@ -124,8 +124,8 @@ class EmpleadoRegular(Empleado):
     def tipo(self) -> str: return "REGULAR"
 
     def obtener_permisos(self) -> list:
-        return ["ver_proyectos", "registrar_horas", "cambiar_contrasena"]
-
+        return ["ver_proyectos", "registrar_horas", "cambiar_contrasena",
+                "gestionar_mi_ficha", "consultar_indicadores", "consultar_clima"]
     def ver_proyectos(self) -> list:
         return [p.nombre for p in self._proyectos]
 
@@ -139,6 +139,7 @@ class Administrador(Empleado):
 
     def obtener_permisos(self) -> list:
         return ["ver_proyectos", "registrar_horas", "cambiar_contrasena",
+                "gestionar_mi_ficha", "consultar_indicadores", "consultar_clima", "calcular_pagos",
                 "gestionar_datos", "asignar_empleados", "generar_informes", "gestionar_usuarios"]
 
     def asignar_empleado_proyecto(self, empleado: Empleado, proyecto) -> bool:

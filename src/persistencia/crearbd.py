@@ -94,6 +94,18 @@ def crear_tablas() -> None:
                 FOREIGN KEY (empleado_id) REFERENCES empleado(id) ON DELETE CASCADE
             )
         """)
+        cursor.execute(f"""
+            CREATE TABLE IF NOT EXISTS indicador_api (
+                id {pk},
+                fuente VARCHAR(50) NOT NULL,
+                codigo VARCHAR(10) NOT NULL,
+                fecha DATE NOT NULL,
+                valor DECIMAL(16,4) NOT NULL,
+                unidad VARCHAR(20) NOT NULL,
+                verificado_en VARCHAR(25) NOT NULL,
+                UNIQUE (fuente, codigo, fecha)
+            )
+        """)
         conexion.commit()
     except Exception:
         if conexion:

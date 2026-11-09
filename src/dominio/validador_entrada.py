@@ -106,3 +106,17 @@ class ValidadorEntrada:
         if len(contrasena) < 8:
             raise ValueError("La contraseña debe tener al menos 8 caracteres.")
         return contrasena
+
+    @staticmethod
+    def validar_ciudad(ciudad) -> str:
+        ciudad = ValidadorEntrada.validar_texto_no_vacio(ciudad, "La ciudad")
+        if not re.fullmatch(r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ '.-]{1,59}", ciudad):
+            raise ValueError("La ciudad solo puede tener letras, espacios, punto, apóstrofo o guion (2 a 60 caracteres).")
+        return ciudad
+
+    @staticmethod
+    def validar_moneda(codigo) -> str:
+        codigo = ValidadorEntrada.validar_texto_no_vacio(codigo, "La moneda").upper()
+        if not re.fullmatch(r"[A-Z]{3}", codigo):
+            raise ValueError("La moneda debe ser un código de 3 letras (ej. USD, EUR, BRL).")
+        return codigo

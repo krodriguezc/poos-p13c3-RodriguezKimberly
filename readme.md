@@ -44,6 +44,20 @@ Herramienta: Mejor amigo Claude
 | Pruebas manuales (`docs/pruebas_manuales.md`) | Propuso 15 casos límite | pide probar casos límite | Adopté, ejecuté las pruebas y anoté los resultados |
 
 | Le pedi a la IA que me adapte el json | propuso json adaptado | adopte | 
+
+| Carpeta servicios y sus archivos dentro | Propuso crear una capa de servicios entre el menú y los DAO | el menú pide datos, el servicio decide y comprueba permisos, el DAO consulta la BD. Antes, el código de la API vivía en un script suelto sin conexión al sistema | Adopté. El menú sigue en main.py; solo moví a servicios/ la lógica nueva de APIs, permisos y datos propios
+
+| cliente_http.py (reemplaza a main_prueba.py) | Propuso un cliente HTTP único con timeout, validación del código HTTP, lectura segura del JSON y LimitadorConsultas | El script original se ejecutaba al importarse, usaba el mismo mensaje para cualquier falla, no distinguía 404, 429 y 5xx, e importaba math a mitad de archivo. Un usuario autenticado podía saturar la API | Modifiqué: excepción propia ErrorServicioExterno con mensajes seguros, el detalle técnico va al log, y límite de 30 consultas por ejecución con 1 s entre ellas
+
+| api_cambio.py, deserializador_indicador.py, dominio/indicador.py, persistencia/indicador_dao.py y tabla indicador_api | Propuso convertir la respuesta JSON en un objeto Indicador validado y guardarlo con clave única | Evita duplicar la misma observación al consultar varias veces y permite un historial local. La sentencia ON CONFLICT propuesta solo funciona en SQLite, pero mi proyecto también usa MySQL | Modifiqué: el DAO elige ON CONFLICT o ON DUPLICATE KEY UPDATE según DB_ENGINE. Probado en SQLite; falta confirmar en MySQL con WampServer
+
+| indicadores.py y pagos.py | Propuso un flujo con respaldo: si la API falla o responde datos inválidos, mostrar el último dato guardado e indicar su origen | Continuidad operativa sin inventar datos: se muestra “Origen: BD local” y aviso. Sin respaldo se informa y se vuelve al menú. El pago internacional usa esa misma tasa validada |  Adopté
+
+| permisos.py, mi_cuenta.py y clima.py | Propuso que cada servicio vuelva a comprobar el permiso (aunque el menú oculte la opción), que “Mi ficha” use el ID de la sesión y que la ciudad se valide antes de llamar a la API | Defensa en profundidad: la función puede llamarse por otra ruta. Un funcionario no debe poder editar a otro. Una entrada sin validar no debe llegar a una URL externa | Adopté. Descarté la columna rol en usuario sugerida en la clase, porque ya existen Empleado.tipo y obtener_permisos() (polimorfismo del UML) y duplicarla crearía dos fuentes de verdad
+
+
+Pasos de git. 
+
 1. git clone 
 2. cd ecotech_poos
 3. py -m venv .venv
@@ -54,6 +68,11 @@ Herramienta: Mejor amigo Claude
 #bd  
 8. python src/persistencia/crearbd.py
 9. python -m unittest discover -s tests -v
+10. python src/semilla_bd.py. pide contrasenas
+11. python src/main.py.
+Iniciar sesión:
+Administrador: admin.
+Funcionarios: ana.torres o bruno.soto.
 
 
 

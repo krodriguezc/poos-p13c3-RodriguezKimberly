@@ -20,6 +20,13 @@ from persistencia.excepciones import ErrorConexion, ErrorIntegridad, ErrorPersis
 from persistencia.proyectodao import ProyectoDAO
 from persistencia.registrotiempodao import RegistroTiempoDAO
 from persistencia.usuariodao import UsuarioDAO
+from servicios.api_cambio import MONEDAS, validar_moneda_admitida
+from servicios.clima import obtener_clima, recomendar_actividad
+from servicios.cliente_http import ErrorServicioExterno
+from servicios.indicadores import consultar_indicador, obtener_historial
+from servicios.mi_cuenta import actualizar_mis_datos
+from servicios.pagos import calcular_pago_internacional
+from servicios.permisos import exigir_permiso
 
 # hace que los errores vayan al archivo de log y no a la pantalla del usuario.
 logging.basicConfig(filename="ecotech_errores.log", level=logging.ERROR,
@@ -85,11 +92,6 @@ def monto(campo: str):
 
 
 # permisos y errores
-def exigir_permiso(sesion, permiso: str) -> None:
-    if not sesion.tiene_permiso(permiso):
-        raise PermissionError(permiso)
-
-
 def con_permiso(sesion, permiso: str, accion):
     def accion_protegida():
         exigir_permiso(sesion, permiso)
@@ -112,6 +114,8 @@ def ejecutar_accion(accion) -> None:
             "o hace referencia a algo que no existe.")
     except ErrorPersistencia:
         print("[ERROR] No fue posible completar la operación. Intente nuevamente.")
+    except ErrorServicioExterno as error:  # fallo controlado de una API (el mensaje ya es seguro)
+        print(f"[SERVICIO EXTERNO] {error}")
     except Exception:                      
         logging.exception("Error inesperado")
         print("[ERROR] Ocurrió un error inesperado. El detalle quedó registrado en ecotech_errores.log.")
@@ -393,6 +397,91 @@ def menu_asignaciones(sesion) -> None:
                     3: listar_asignados}
         ejecutar_accion(con_permiso(sesion, "asignar_empleados", acciones[opcion]))
 
+# servicios externos y datos propios
+def mi_ficha(sesion):
+    empleado = EmpleadoDAO.buscar_por_id(sesion.id)               # el ID sale de la sesión, no del teclado
+    print(empleado.mostrar_datos())
+    if not confirmar("¿Desea actualizar sus datos?"):
+        return
+    print("(Enter conserva el valor actual)")
+    nombre = pedir(f"Nombre [{empleado.nombre}]: ", texto_no_vacio("El nombre"), actual=empleado.nombre)
+    direccion = pedir(f"Dirección [{empleado.direccion}]: ", texto_no_vacio("La dirección"), actual=empleado.direccion)
+    telefono = pedir(f"Teléfono [{empleado.telefono}]: ", Val.validar_telefono, actual=empleado.telefono)
+    correo = pedir(f"Correo [{empleado.correo}]: ", Val.validar_email_opcional, actual=empleado.correo)
+    actualizar_mis_datos(sesion, nombre, direccion, telefono, correo)
+    print("[ÉXITO] Sus datos fueron actualizados.")
+
+
+def elegir_moneda() -> str:
+    print("Monedas disponibles: " + ", ".join(f"{codigo} ({nombre})" for codigo, nombre in MONEDAS.items()))
+    return pedir("Moneda (ej. USD): ", validar_moneda_admitida)
+
+
+def consultar_valor_actualizado(sesion):
+    resultado = consultar_indicador(sesion, elegir_moneda())
+    dato = resultado["indicador"]
+    print(f"{dato.codigo}: {dato.valor:,.2f} {dato.unidad}")
+    print(f"Fecha del dato: {dato.fecha} | Última verificación: {dato.verificado_en}")
+    print(f"Origen: {resultado['origen']}")
+    print(resultado["mensaje"])
+
+
+def ver_historial_indicador(sesion):
+    moneda = elegir_moneda()
+    historial = obtener_historial(sesion, moneda)
+    if not historial:
+        print(f"Aún no existe historial guardado para {moneda}.")
+        return
+    print(f"Historial de {moneda} (origen: BD local, del más reciente al más antiguo):")
+    for dato in historial:
+        print(f"  {dato.fecha}: {dato.valor:,.2f} {dato.unidad} (verificado: {dato.verificado_en})")
+
+
+def consultar_clima_proyecto(sesion):
+    id_proy = pedir_id_existente("ID del proyecto: ", ProyectoDAO.buscar_por_id, "un proyecto")
+    if not sesion.tiene_permiso("gestionar_datos") and not AsignacionDAO.existe(sesion.id, id_proy):
+        print("Solo puede consultar el clima de proyectos donde está asignado.")
+        return
+    proyecto = ProyectoDAO.buscar_por_id(id_proy)
+    ciudad = pedir("Ciudad donde se ejecuta el proyecto (ej. Santiago): ", Val.validar_ciudad)
+    datos = obtener_clima(sesion, ciudad)
+    print(f"Proyecto: {proyecto.nombre}")
+    print(f"Clima en {datos['ciudad']} ({datos['pais']}): {datos['estado']} | "
+        f"Temperatura: {datos['temperatura']} °C | Humedad: {datos['humedad']}%")
+    print("Recomendación: " + recomendar_actividad(datos))
+
+
+def calcular_pago(sesion):
+    id_emp = pedir_id_existente("ID del empleado: ", EmpleadoDAO.buscar_por_id, "un empleado")
+    empleado = EmpleadoDAO.buscar_por_id(id_emp)
+    moneda = elegir_moneda()
+    r = calcular_pago_internacional(sesion, empleado, moneda)
+    print(f"Salario base de {empleado.nombre}: ${empleado.salario_base:,.2f} CLP")
+    print(f"Pago equivalente: {r['pago']:,.2f} {r['moneda']}")
+    print(f"Tasa usada: {r['indicador'].valor:,.4f} {r['indicador'].unidad} | "
+        f"Fecha del dato: {r['indicador'].fecha} | Origen: {r['origen']}")
+    print(r["mensaje"])
+
+
+def menu_servicios_externos(sesion) -> None:
+    while True:
+        puede_pagar = sesion.tiene_permiso("calcular_pagos")
+        print("\n--- SERVICIOS EXTERNOS ---")
+        print("1. Consultar valor actualizado de una moneda")
+        print("2. Ver historial guardado de una moneda")
+        print("3. Consultar clima de un proyecto")
+        if puede_pagar:
+            print("4. Calcular pago internacional de un empleado")
+        print("0. Volver")
+        opcion = solicitar_opcion(4 if puede_pagar else 3)
+        if opcion == 0:
+            return
+        acciones = {1: ("consultar_indicadores", lambda: consultar_valor_actualizado(sesion)),
+                    2: ("consultar_indicadores", lambda: ver_historial_indicador(sesion)),
+                    3: ("consultar_clima", lambda: consultar_clima_proyecto(sesion)),
+                    4: ("calcular_pagos", lambda: calcular_pago(sesion))}
+        permiso, accion = acciones[opcion]
+        ejecutar_accion(con_permiso(sesion, permiso, accion))
 
 # informes
 def generar_informe():
@@ -460,13 +549,20 @@ def iniciar_sesion():
     for _ in range(3):
         nombre_usuario = input("\nUsuario: ").strip()
         contrasena = getpass.getpass("Contraseña: ")
+        if not nombre_usuario or not contrasena:
+            print("Debe ingresar usuario y contraseña.")
+            continue
+        try:
+            Val.validar_nombre_usuario(nombre_usuario)       # sanea antes de consultar la BD
+        except ValueError:
+            print("Usuario o contraseña incorrectos.")      # no revela cuál campo falló
+            continue
         usuario = UsuarioDAO.buscar_por_nombre(nombre_usuario)
         if usuario is not None and usuario.autenticar(contrasena):
             return usuario.empleado
-        print("Usuario o contraseña incorrectos.")        #  no revela cuál falló en el mensaje
+        print("Usuario o contraseña incorrectos.")
     print("Demasiados intentos fallidos.")
     return None
-
 
 # menú del empleado regular
 def ver_mis_proyectos(sesion):
@@ -491,16 +587,20 @@ def menu_regular(sesion) -> None:
         print("1. Ver mis proyectos")
         print("2. Registrar mis horas")
         print("3. Ver mis registros de tiempo")
-        print("4. Cambiar mi contraseña")
+        print("4. Mi ficha (ver y actualizar mis datos)")
+        print("5. Servicios externos (monedas, historial y clima)")
+        print("6. Cambiar mi contraseña")
         print("0. Salir")
-        opcion = solicitar_opcion(4)
+        opcion = solicitar_opcion(6)
         if opcion == 0:
             print("\nSesión cerrada. ¡Hasta luego!")
             return
         acciones = {1: ("ver_proyectos", lambda: ver_mis_proyectos(sesion)),
                     2: ("registrar_horas", lambda: registrar_horas_para(sesion)),
                     3: ("ver_proyectos", lambda: ver_mis_registros(sesion)),
-                    4: ("cambiar_contrasena", lambda: cambiar_mi_contrasena(sesion))}
+                    4: ("gestionar_mi_ficha", lambda: mi_ficha(sesion)),
+                    5: ("consultar_indicadores", lambda: menu_servicios_externos(sesion)),
+                    6: ("cambiar_contrasena", lambda: cambiar_mi_contrasena(sesion))}
         permiso, accion = acciones[opcion]
         ejecutar_accion(con_permiso(sesion, permiso, accion))
 
@@ -535,8 +635,10 @@ def menu_administrador(sesion) -> None:
         print("6. Generar informes")
         print("7. Crear usuario para un empleado")
         print("8. Cambiar mi contraseña")
+        print("9. Mi ficha (ver y actualizar mis datos)")
+        print("10. Servicios externos (monedas, historial y clima)")
         print("0. Salir")
-        opcion = solicitar_opcion(8)
+        opcion = solicitar_opcion(10)
         if opcion == 1:
             submenu(sesion, "DEPARTAMENTOS", "departamento", {1: registrar_departamento, 2: listar_departamentos,
                     3: buscar_departamento, 4: actualizar_departamento, 5: eliminar_departamento})
@@ -557,6 +659,10 @@ def menu_administrador(sesion) -> None:
             ejecutar_accion(con_permiso(sesion, "gestionar_usuarios", crear_usuario_empleado))
         elif opcion == 8:
             ejecutar_accion(con_permiso(sesion, "cambiar_contrasena", lambda: cambiar_mi_contrasena(sesion)))
+        elif opcion == 9:
+            ejecutar_accion(con_permiso(sesion, "gestionar_mi_ficha", lambda: mi_ficha(sesion)))
+        elif opcion == 10:
+            ejecutar_accion(con_permiso(sesion, "consultar_indicadores", lambda: menu_servicios_externos(sesion)))
         else:
             print("\nSesión cerrada. ¡Hasta luego!")
             return

@@ -1,0 +1,30 @@
+ Descripción del Proyecto.
+
+La empresa EcoTech Solutions ha experimentado un crecimiento acelerado que generó dificultades en la administración de su información interna, 
+dependiendo de hojas de cálculo y sistemas aislados. Esta situación provocaba duplicidad de datos, errores de asignación, falta de trazabilidad en horas 
+trabajadas y riesgos en la seguridad de la información personal de sus trabajadores.
+Para solucionar esta problemática, se diseñó e implementó una arquitectura en Python basada en el paradigma de Programación Orientada a Objetos (POO) de 
+forma segura, estructurada en tres capas principales:
+
+1. Capa de Dominio: Representa la lógica de negocio y reglas del sistema.
+
+2. Capa de Persistencia (DAO): Maneja el almacenamiento de información mediante transacciones seguras con SQLite/MySQL.
+
+3. Capa de Integración API y Consola: Maneja la autenticación por roles, entrada de datos auditada e integración con servicios de tasas de cambio.
+
+Fundamentos de POO Aplicados
+Abstracción: Se aislaron las entidades clave del negocio (Empleado, Departamento, Proyecto, RegistroTiempo, Usuario, Informe y ValidadorEntrada) para 
+procesar únicamente la información relevante.
+
+Encapsulamiento: Atributos privados controlados a través de propiedades (@property) y validadores para impedir la mutación inconsistente del estado 
+de los objetos.
+
+Herencia y Polimorfismo: La clase abstracta Empleado define el contrato base, especializándose en EmpleadoRegular y Administrador. 
+El método obtener_permisos() actúa de forma polimórfica en tiempo de ejecución según el rol del usuario autenticado.
+
+Cohesión y Responsabilidad Única (SRP):
+
+1. Usuario: Encargado de la autenticación y cifrado de claves.
+2. Empleado: Administra la información laboral y contractual.
+3.ValidadorEntrada: Audita las entradas de datos del usuario.
+
